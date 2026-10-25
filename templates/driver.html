@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Driver Delivery Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=asset_version('style.css')) }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='healing.css', v=asset_version('healing.css')) }}">
+</head>
+<body class="driver-portal" data-driver-token="{{ driver_token }}">
+  <main class="driver-main">
+    <header>
+      <div>
+        <div class="eyebrow">DELIVERY PARTNER</div>
+        <h1>Driver portal</h1>
+        <p>Assigned to {{ driver_phone }} · Keep this page open for new order alerts and live GPS sharing.</p>
+      </div>
+      <a class="btn" href="{{ url_for('home') }}">Order tracker</a>
+    </header>
+    <section class="panel">
+      <div class="panel-head">
+        <div><h2>Your assigned orders</h2><p>New assignments appear automatically while this portal is open.</p></div>
+        <span class="pill good">LIVE PORTAL</span>
+      </div>
+      <div id="driverMessage" class="driver-message" role="status" aria-live="polite">Checking assigned orders…</div>
+      <div id="driverOrders" class="driver-orders"></div>
+    </section>
+    <p class="driver-privacy">This private link provides access to orders assigned to this driver. Do not share it with anyone else. GPS is sent only after an order is accepted and location permission is granted.</p>
+  </main>
+  <script src="{{ url_for('static', filename='driver.js', v=asset_version('driver.js')) }}" defer></script>
+</body>
+</html>
