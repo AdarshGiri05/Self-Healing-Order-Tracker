@@ -70,5 +70,4 @@ Use **Reset simulated services** after the provider-outage scenarios to restore 
 - `GET /api/analytics` — live recovery measurements and order counts
 
 GPS location updates are stored as the order's most recent coordinates and become stale after 45 seconds without a new update. Driver portal URLs contain a private bearer token: anyone with the link can view assigned orders and act as that driver. Keep these links private and deploy behind HTTPS. The legacy order-ID location endpoints are unauthenticated; do not use real customer data without adding appropriate authentication and authorization.
-#   S e l f - H e a l i n g - O r d e r - T r a c k e r  
- 
+#
