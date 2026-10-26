@@ -1,0 +1,33 @@
+# SELF-HEALING ORDER TRACKER — CHAOS SCRIPT
+
+**Project:** Self-Healing Order Tracker  
+**Students:** Adarsh Giri & Abhay Mahawar
+**Department:** BCA 3rd Year
+
+### Objective
+The Chaos Script tests the reliability of the Self-Healing Order Tracker by simulating failures and checking whether recovery mechanisms work correctly.
+
+### Chaos Testing Scenarios
+
+1. **Worker Crash Recovery:** Simulates a worker crash and checks whether the worker can restart.
+2. **Network Failure:** Simulates connection failures and retries the request until the service becomes available.
+3. **Circuit Breaker:** Detects repeated service failures and temporarily blocks requests to prevent further errors.
+4. **Cached Fallback:** Provides previously stored order information when the tracking service is unavailable.
+5. **Invalid Status Repair:** Detects an invalid order status and replaces it with a safe fallback status in the simulated test.
+
+### Execution
+Run the script using:
+
+`py chaos_script.py`
+
+To execute all test scenarios:
+
+`py chaos_script.py --all`
+
+### Expected Result
+The script displays the status of each test, reports successful recoveries, and generates a final summary of passed tests.
+
+### Conclusion
+Chaos testing helps identify system weaknesses and evaluate recovery mechanisms, improving the reliability and fault tolerance of the Self-Healing Order Tracker.
+
+**Note:** These scenarios simulate recovery behavior. Actual automatic recovery in the application requires integration with the backend services.
