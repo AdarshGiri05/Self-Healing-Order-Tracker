@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Self-Healing Order Tracker</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=asset_version('style.css')) }}"><link rel="stylesheet" href="{{ url_for('static', filename='healing.css', v=asset_version('healing.css')) }}"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand"><span class="brand-icon">✦</span><div><b>Order Tracker</b><small>SELF-HEALING ORDERS</small></div></div>
+  <nav>
+    <button class="nav active" data-page="dashboard">▦ Dashboard</button>
+    <button class="nav" data-page="orders">▣ Order Tracking</button>
+    <button class="nav" data-page="incidents">⚠ Incident Management</button>
+    <button class="nav" data-page="chaos">♧ Chaos Testing Lab</button>
+    <button class="nav" data-page="analytics">▥ Reliability Analytics</button>
+  </nav>
+  <div class="sidebar-bottom"><span class="dot"></span> Python API connected<small>HTML · CSS · Python · SQLite</small></div>
+</aside>
+<main>
+<header><div><div class="eyebrow">OPERATIONS CENTER</div><h1 id="pageTitle">Health Dashboard</h1><p>Monitor orders, detect faults and recover automatically.</p></div><div class="live"><span class="dot"></span> LIVE STATUS</div></header>
+<section id="dashboard" class="page active">
+  <div class="stats">
+    <article class="stat"><span>Total Orders</span><strong id="totalOrders">—</strong><small>Orders stored in SQL</small><i class="icon orange">▣</i></article>
+    <article class="stat"><span>Active Incidents</span><strong id="activeIncidents">—</strong><small>Needs attention</small><i class="icon red">⚠</i></article>
+    <article class="stat"><span>Recovery Success</span><strong id="successRate">—</strong><small>Recovered incidents</small><i class="icon green">✓</i></article>
+    <article class="stat"><span>System Health</span><strong id="systemHealth">—</strong><small>Service overview</small><i class="icon blue">⌁</i></article>
+  </div>
+  <div id="dashboardTrackingOutageNotice" class="tracking-outage-notice" role="status" aria-live="polite" hidden>
+    <span class="tracking-outage-icon" aria-hidden="true">!</span>
+    <span><strong>Live order tracking is unavailable</strong><small>Order statuses are temporarily marked Unavailable while the tracking provider is offline.</small></span>
+    <button class="btn" type="button" data-goto="orders">View order statuses</button>
+  </div>
+  <div class="grid two">
+    <article class="panel service-health-window"><div class="panel-head"><div><h2>Service health</h2><p>Live health checks for app and dependencies</p></div><span id="healthPill" class="pill good">MONITORING</span></div>
+      <div id="serviceHealth">
+        <div class="service"><span class="service-icon blue-bg">API</span><div><b>Python REST API</b><small>Worker heartbeat</small></div><span class="status good-text">● Checking</span></div>
+        <div class="service"><span class="service-icon purple-bg">SQL</span><div><b>SQLite Database</b><small>Orders & incidents</small></div><span class="status good-text">● Checking</span></div>
+        <div class="service"><span class="service-icon orange-bg">↗</span><div><b>Tracking provider</b><small>External service connection</small></div><span class="status good-text">● Checking</span></div>
+        <div class="service"><span class="service-icon green-bg">CB</span><div><b>Circuit breaker</b><small>Fail-fast protection</small></div><span class="status good-text">● Checking</span></div>
+      </div>
+    </article>
+    <article class="panel healing-window" aria-labelledby="healingInfoTitle">
+      <div class="panel-head"><div><h2 id="healingInfoTitle">Healing solution window</h2><p>Follow the recovery steps as they happen</p></div><button id="autoHeal" type="button" class="btn primary">Detect &amp; Auto-Heal</button></div>
+      <div class="healing-info-heading">
+        <h3>Problem being solved</h3>
+        <p>Select a problem below to simulate an issue, then click Detect &amp; Auto-Heal to diagnose and restore the affected service or order data.</p>
+      </div>
+      <div class="problem-picker" role="group" aria-label="Choose one or more problems to simulate">
+        <button type="button" class="problem-choice" data-problem="cleanup_orders" aria-pressed="false">
+          <strong>Clean up data</strong><small>Removes all order rows after saving a persistent snapshot. Driver portal records stay intact; click Detect &amp; Auto-Heal to restore the orders.</small>
+        </button>
+        <button type="button" class="problem-choice" data-problem="tracking_outage" aria-pressed="false">
+          <strong>Tracking outage</strong><small>Immediately marks order statuses Unavailable; click Detect &amp; Auto-Heal to restore tracking.</small>
+        </button>
+        <button type="button" class="problem-choice" data-problem="recent_orders" aria-pressed="false">
+          <strong>Recent orders not showing</strong><small>Hides the four-order dashboard preview until Detect &amp; Auto-Heal restores it. View all orders remains on the Order Tracking page.</small>
+        </button>
+        <button type="button" class="problem-choice" data-problem="network_failure" aria-pressed="false">
+          <strong>Network fail</strong><small>Simulates a connection failure and marks live order tracking unavailable. Click Detect &amp; Auto-Heal to restore connectivity.</small>
+        </button>
+        <button type="button" class="problem-choice" data-problem="corrupt_order" aria-pressed="false">
+          <strong>Invalid order status</strong><small>Order data is inconsistent</small>
+        </button>
+      </div>
+      <div id="healingWindowStatus" class="healing-window-status ready" role="status" aria-live="polite">
+        <span id="healingWindowIcon" class="healing-window-icon" aria-hidden="true">•</span>
+        <span><strong id="healingWindowTitle">Ready to run</strong><small id="healingWindowDetail">Select Detect &amp; Auto-Heal to scan live health and repair supported issues.</small></span>
+      </div>
+      <section id="problemProgress" class="problem-progress" aria-label="Selected problem recovery progress" aria-live="polite" hidden></section>
+      <ol class="healing-steps" aria-label="Healing steps">
+        <li class="healing-step" data-healing-step="0"><b>01</b><span><strong>Detect</strong><small>Check provider health</small></span><em>Waiting</em></li>
+        <li class="healing-step" data-healing-step="1"><b>02</b><span><strong>Diagnose</strong><small>Confirm failure cause</small></span><em>Waiting</em></li>
+        <li class="healing-step" data-healing-step="2"><b>03</b><span><strong>Heal</strong><small>Restore the provider</small></span><em>Waiting</em></li>
+        <li class="healing-step" data-healing-step="3"><b>04</b><span><strong>Verify</strong><small>Check recovery</small></span><em>Waiting</em></li>
+      </ol>
+    </article>
+  </div>
+  <article class="panel"><div class="panel-head"><div><h2>Recent orders</h2><p>Latest activity in the order system</p></div><button class="btn" data-goto="orders" data-goto-target="ordersTable">View all orders →</button></div><div id="recentOrders" class="table-wrap"></div></article>
+</section>
+<section id="orders" class="page">
+ <article class="panel"><div class="panel-head"><div><h2>Create an order</h2><p>Add the assigned driver's number. The confirmation prepares an editable order message for SMS or WhatsApp; review it and tap Send in your messaging app.</p></div></div>
+ <form id="orderForm" class="order-form"><input name="customer" placeholder="Customer name" required><input name="item" placeholder="Product / item" required><input name="amount" type="number" min="0" step=".01" placeholder="Amount (₹)" required><input name="city" placeholder="Delivery city" required><input name="driver_phone" type="tel" autocomplete="tel" placeholder="Driver phone (+country code)" pattern="\+?[0-9\s().-]{7,20}" title="Enter a driver phone number with 7 to 15 digits; include the country code for international delivery." required><button class="btn primary">＋ Add order</button></form><div id="orderMessage" class="message"></div></article>
+ <article class="panel"><div class="panel-head map-head"><div><h2>Order location map</h2><p>See the selected order's delivery progress</p></div><label class="map-order-picker">Track order<select id="mapOrderSelect" aria-label="Choose order to show on map"></select></label></div>
+   <div id="orderProgress" class="order-progress" role="status" aria-live="polite"><strong>Select an order to see where it has reached.</strong></div>
+   <div class="gps-sharing">
+     <div><b>Driver live location</b><small>Share the driver's private portal link from the order confirmation. The driver accepts the order there and starts GPS sharing; the first GPS update marks it In Transit.</small></div>
+     <button id="completeOrder" type="button" class="btn">Mark order completed</button>
+     <span id="locationShareMessage" class="message" role="status" aria-live="polite">Driver GPS updates appear here after the driver accepts and shares location from the portal.</span>
+   </div>
+   <div id="orderMap" role="img" aria-label="Map showing estimated order route" ></div>
+   <p class="hint map-disclaimer">The driver opens their private portal link over HTTPS, accepts the order, and allows location access to share GPS. GPS requires HTTPS (localhost is supported for same-device testing); the map also needs internet access.</p>
+ </article>
+ <article class="panel">
+   <div class="panel-head">
+     <div><h2>Order tracking</h2><p>Follow driver-controlled progress until the delivery is completed</p></div>
+     <input id="orderSearch" class="search" placeholder="Search order / customer…">
+   </div>
+   <div id="ordersTrackingOutageNotice" class="tracking-outage-notice" role="status" aria-live="polite" hidden>
+     <span class="tracking-outage-icon" aria-hidden="true">!</span>
+     <span><strong>Live order statuses unavailable</strong><small>Delivery status data is unavailable until the tracking provider recovers.</small></span>
+     <button class="btn" type="button" data-goto="dashboard">Open self-healing</button>
+   </div>
+   <div class="order-auto-progress">
+     <span class="order-live-indicator" aria-hidden="true"></span>
+     <div><b>LIVE ORDER TRACKING</b><small>The tracker refreshes every 2 seconds. Orders stay active while the driver shares GPS and are marked Delivered when the driver taps Mark order completed.</small></div>
+   </div>
+   <div id="ordersTable" class="table-wrap" tabindex="-1"></div>
+ </article>
+</section>
+<section id="incidents" class="page"><article class="panel"><div class="panel-head"><div><h2>Incident lifecycle</h2><p>Detected → Diagnosed → Action Taken → Recovered</p></div><button class="btn primary" data-goto="chaos">＋ Run fault test</button></div><div id="incidentsList"></div></article></section>
+<section id="chaos" class="page"><article class="panel"><div class="panel-head"><div><h2>Chaos testing lab</h2><p>Inject a controlled fault, then verify the recovery in health and incident history.</p></div><span class="pill warn">CONTROLLED SIMULATION</span></div>
+<div class="chaos-controls"><label for="chaosScenario">Failure to inject</label><select id="chaosScenario">
+  <option value="process_crash">Worker crash — watchdog restart</option>
+  <option value="network_glitch">Transient network glitch — exponential backoff</option>
+  <option value="circuit_breaker">Tracking outage — circuit breaker</option>
+  <option value="cached_fallback">Tracking outage — cached fallback</option>
+  <option value="corrupt_record">Invalid order status — repair from snapshot</option>
+</select><button id="runChaos" class="btn primary">Inject failure &amp; heal</button><button id="resetChaos" class="btn">Reset simulated services</button></div>
+<p class="hint">Only simulated worker/provider faults are injected; no real process or external service is stopped. The worker restart, retries, fallback and record repair are executed by the app.</p>
+<div id="chaosMessage" class="message" role="status" aria-live="polite"></div>
+<div id="chaosComparison" class="comparison" hidden></div>
+<div class="healing-banner"><div class="pulse">✦</div><div><b>Five active self-healing mechanisms</b><p>Watchdog restart <span>·</span> exponential backoff <span>·</span> circuit breaker <span>·</span> cached fallback <span>·</span> data repair</p></div></div>
+<div class="panel-head incident-heading"><div><h2>Incident log</h2><p>Detected → Diagnosed → Action Taken → Recovered (each stage timestamped)</p></div></div><div id="chaosIncidentsList"></div>
+</article></section>
+<section id="analytics" class="page"><div class="stats">
+ <article class="stat"><span>Mean Time to Detect</span><strong id="mttd">— <em>sec</em></strong><small>Measured from injection to detection</small></article>
+ <article class="stat"><span>Mean Time to Recover</span><strong id="mttr">— <em>sec</em></strong><small>Measured from injection to recovery</small></article>
+ <article class="stat"><span>Recovery Success</span><strong id="analyticsRate">—</strong><small>Incidents recovered</small></article>
+ <article class="stat"><span>Total Incidents</span><strong id="analyticsIncidents">—</strong><small>Recorded in SQL</small></article>
+ </div><article class="panel"><div class="panel-head"><div><h2>Order status distribution</h2><p>Based on current SQLite records</p></div></div><div id="statusChart" class="bars"></div></article>
+ <article class="panel"><div class="panel-head"><div><h2>Reliability definition</h2></div></div><div class="metric-explain"><p><b>MTTD:</b> Average milliseconds from fault injection to detection, shown in seconds.</p><p><b>MTTR:</b> Average milliseconds from fault injection to recovered state, shown in seconds.</p><p><b>Recovery success rate:</b> Successfully recovered incidents ÷ total incidents × 100. Timing values are measured from persisted incident timestamps, not fixed demo numbers.</p></div></article></section>
+<footer>Order Tracker <span>Self-Healing Order Tracker · BCA 3rd Year Project</span></footer>
+</main>
+<section id="networkOutageScreen" class="network-outage-screen" role="alertdialog"
+         aria-modal="true" aria-labelledby="networkOutageTitle"
+         aria-describedby="networkOutageDetail" hidden>
+  <div class="network-outage-card">
+    <span class="network-outage-symbol" aria-hidden="true">!</span>
+    <p class="eyebrow">CONNECTION INTERRUPTED</p>
+    <h2 id="networkOutageTitle">Website connection lost</h2>
+    <p id="networkOutageDetail">The simulated network failure has interrupted the website. Order data is safe; use self-healing to restore connectivity.</p>
+    <span id="networkOutageStatus" class="network-outage-status" role="status" aria-live="polite">Network connectivity is unavailable.</span>
+    <button id="networkAutoHeal" class="btn primary" type="button">Self-Heal Network</button>
+  </div>
+</section>
+<dialog id="healingResultDialog" class="healing-result-dialog" aria-labelledby="healingResultTitle">
+  <div class="healing-result-header">
+    <span class="healing-result-check" aria-hidden="true">✓</span>
+    <div><span class="eyebrow">RECOVERY REPORT</span><h2 id="healingResultTitle">Healing complete</h2></div>
+    <button id="closeHealingResult" class="healing-result-close" type="button" aria-label="Close recovery report">×</button>
+  </div>
+  <p id="healingResultSummary" class="healing-result-summary"></p>
+  <div id="healingResultDetails" class="healing-result-details"></div>
+</dialog>
+<div id="toast" class="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='app.js', v=asset_version('app.js')) }}"></script>
+</body></html>
